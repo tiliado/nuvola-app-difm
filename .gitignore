@@ -1,0 +1,13 @@
+Makefile
+metadata.json
+icons
+/screenshots/
+nuvola-app-difm
+eu.tiliado.NuvolaAppDifm.desktop
+eu.tiliado.NuvolaAppDifm.service
+eu.tiliado.NuvolaAppDifm.appdata.xml
+nuvola-app-difm.metainfo.xml
+eu.tiliado.WebRuntimeAppDifm.desktop
+eu.tiliado.WebRuntimeAppDifm.service
+eu.tiliado.WebRuntimeAppDifm.appdata.xml
+nuvola-app-difm.metainfo.xml
