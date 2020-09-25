@@ -58,16 +58,44 @@
 
   // Extract data from the web page
   WebApp.update = function () {
+    var elms = this._getElements()
+
     var track = {
-      title: null,
-      artist: null,
+      title: Nuvola.queryText('#webplayer-region .track-title .track-name'),
+      artist: Nuvola.queryText('#webplayer-region .track-title .artist-name', s => s.replace(/\s*-\s*$/, '')),
       album: null,
-      artLocation: null,
-      rating: null
+      artLocation: Nuvola.queryAttribute('#webplayer-region .track-region .artwork img', 'src', (src) => (
+        src ? 'https:' + src.replace('?size=62x62', '?size=200x200') : null
+      )),
+      rating: null,
+      length: Nuvola.queryText('#webplayer-region .progress-region .total')
     }
 
+    var state
+    if (!track.title && !track.artist) {
+      state = PlaybackState.UNKNOWN // advertisement
+    } else if (elms.pause) {
+      state = PlaybackState.PLAYING
+    } else if (elms.play) {
+      state = PlaybackState.PAUSED
+    } else {
+      state = PlaybackState.UNKNOWN
+    }
+
+    player.setPlaybackState(state)
     player.setTrack(track)
-    player.setPlaybackState(PlaybackState.UNKNOWN)
+    player.setTrackPosition(Nuvola.queryText('#webplayer-region .progress-region .time'))
+
+    var volumeMark = elms.volumebar ? elms.volumebar.firstElementChild : null
+    if (volumeMark && volumeMark.style.width.includes('%')) {
+      player.updateVolume(volumeMark.style.width.replace('%', '') / 100)
+    }
+    player.setCanChangeVolume(!!elms.volumebar)
+
+    player.setCanGoPrev(false)
+    player.setCanGoNext(!!elms.next)
+    player.setCanPlay(!!elms.play)
+    player.setCanPause(!!elms.pause)
 
     // Schedule the next update
     setTimeout(this.update.bind(this), 500)
@@ -75,10 +103,54 @@
 
   // Handler of playback actions
   WebApp._onActionActivated = function (emitter, name, param) {
+    var elms = this._getElements()
     switch (name) {
-      case PlayerAction.Play:
+      case PlayerAction.TOGGLE_PLAY:
+        if (elms.play) {
+          Nuvola.clickOnElement(elms.play)
+        } else {
+          Nuvola.clickOnElement(elms.pause)
+        }
+        break
+      case PlayerAction.PLAY:
+        Nuvola.clickOnElement(elms.play)
+        break
+      case PlayerAction.PAUSE:
+      case PlayerAction.STOP:
+        Nuvola.clickOnElement(elms.pause)
+        break
+      case PlayerAction.NEXT_SONG:
+        Nuvola.clickOnElement(elms.next)
+        break
+      case PlayerAction.CHANGE_VOLUME:
+        Nuvola.clickOnElement(elms.volumebar, Math.max(0.004, param), 0.5)
         break
     }
+  }
+
+  WebApp._getElements = function () {
+    // Interesting elements
+    var elms = {
+      play: document.querySelector('#webplayer-region .controls .play-button a'),
+      pause: null,
+      next: document.querySelector('.controls .skip-button div.skip-button'),
+      volumebar: document.querySelector('#popup-volume .progress-container')
+    }
+
+    if (elms.play) {
+      if (elms.play.classList.contains('icon-pause')) {
+        elms.pause = elms.play
+        elms.play = null
+      } else if (!elms.play.classList.contains('icon-play')) {
+        elms.play = null
+      }
+    }
+
+    if (elms.next && elms.next.classList.contains('noskip')) {
+      elms.next = null
+    }
+
+    return elms
   }
 
   WebApp.start()
