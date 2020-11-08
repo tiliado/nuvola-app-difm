@@ -26,20 +26,20 @@
 
 (function (Nuvola) {
   // Create media player component
-  var player = Nuvola.$object(Nuvola.MediaPlayer)
+  const player = Nuvola.$object(Nuvola.MediaPlayer)
 
   // Handy aliases
-  var PlaybackState = Nuvola.PlaybackState
-  var PlayerAction = Nuvola.PlayerAction
+  const PlaybackState = Nuvola.PlaybackState
+  const PlayerAction = Nuvola.PlayerAction
 
   // Create new WebApp prototype
-  var WebApp = Nuvola.$WebApp()
+  const WebApp = Nuvola.$WebApp()
 
   // Initialization routines
   WebApp._onInitWebWorker = function (emitter) {
     Nuvola.WebApp._onInitWebWorker.call(this, emitter)
 
-    var state = document.readyState
+    const state = document.readyState
     if (state === 'interactive' || state === 'complete') {
       this._onPageReady()
     } else {
@@ -58,9 +58,9 @@
 
   // Extract data from the web page
   WebApp.update = function () {
-    var elms = this._getElements()
+    const elms = this._getElements()
 
-    var track = {
+    const track = {
       title: Nuvola.queryText('#webplayer-region .track-title .track-name'),
       artist: Nuvola.queryText('#webplayer-region .track-title .artist-name', s => s.replace(/\s*-\s*$/, '')),
       album: null,
@@ -71,7 +71,7 @@
       length: Nuvola.queryText('#webplayer-region .progress-region .total')
     }
 
-    var state
+    let state
     if (!track.title && !track.artist) {
       state = PlaybackState.UNKNOWN // advertisement
     } else if (elms.pause) {
@@ -86,7 +86,7 @@
     player.setTrack(track)
     player.setTrackPosition(Nuvola.queryText('#webplayer-region .progress-region .time'))
 
-    var volumeMark = elms.volumebar ? elms.volumebar.firstElementChild : null
+    const volumeMark = elms.volumebar ? elms.volumebar.firstElementChild : null
     if (volumeMark && volumeMark.style.width.includes('%')) {
       player.updateVolume(volumeMark.style.width.replace('%', '') / 100)
     }
@@ -103,7 +103,7 @@
 
   // Handler of playback actions
   WebApp._onActionActivated = function (emitter, name, param) {
-    var elms = this._getElements()
+    const elms = this._getElements()
     switch (name) {
       case PlayerAction.TOGGLE_PLAY:
         if (elms.play) {
@@ -130,7 +130,7 @@
 
   WebApp._getElements = function () {
     // Interesting elements
-    var elms = {
+    const elms = {
       play: document.querySelector('#webplayer-region .controls .play-button a'),
       pause: null,
       next: document.querySelector('.controls .skip-button div.skip-button'),
